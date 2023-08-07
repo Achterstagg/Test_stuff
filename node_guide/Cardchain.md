@@ -113,7 +113,7 @@ sed -i -e "s/prometheus = false/prometheus = true/" $HOME/.Cardchain/config/conf
 ```bash
 Cardchaind unsafe-reset-all --home $HOME/.Cardchain
 ```
-# Service
+# Service.
 
 ```bash
 sudo tee /etc/systemd/system/Cardchaind.service > /dev/null <<EOF
