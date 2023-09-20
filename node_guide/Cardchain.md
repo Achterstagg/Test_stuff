@@ -103,12 +103,12 @@ sed -i -e "s/^pruning-interval *=.*/pruning-interval = \"$pruning_interval\"/" $
 sed -i 's/minimum-gas-prices = "0ubpf"/minimum-gas-prices = "0.0001ubpf"/g' $HOME/.Cardchain/config/app.toml
 ```
 
-## Prometheus
+## Prometheus.
 
 ```bash
 sed -i -e "s/prometheus = false/prometheus = true/" $HOME/.Cardchain/config/config.toml
 ```
-## Reset chain data
+## Reset chain data.
 
 ```bash
 Cardchaind unsafe-reset-all --home $HOME/.Cardchain
