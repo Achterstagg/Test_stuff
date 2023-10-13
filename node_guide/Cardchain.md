@@ -153,3 +153,10 @@ LimitNOFILE=65535
 WantedBy=multi-user.target
 EOF
 ```
+## Register and start service
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable Cardchaind
+sudo systemctl restart Cardchaind && sudo journalctl -u Cardchaind -f -o cat
+```
