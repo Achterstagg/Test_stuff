@@ -22,7 +22,7 @@ fi
 ```
 ## Moniker, whrite some name
 ```bash
-NODENAME=Cosmo-zalupa
+NODENAME=Cosmo-gem
 ```
 ## Make your custom ports. You can chose from 10 to 65
 ```bash
