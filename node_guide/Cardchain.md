@@ -22,7 +22,7 @@ fi
 ```
 ## Moniker, whrite some name
 ```bash
-NODENAME=Du_not_copypast
+NODENAME=Cosmo-zalupa
 ```
 ## Make your custom ports. You can chose from 10 to 65
 ```bash
@@ -35,7 +35,7 @@ echo "export NODENAME=$NODENAME" >> $HOME/.bash_profile
 if [ ! $WALLET ]; then
 	echo "export WALLET=wallet" >> $HOME/.bash_profile
 fi
-echo "export CARD_CHAIN_ID=Testnet3" >> $HOME/.bash_profile
+echo "export CARD_CHAIN_ID=cardtestnet-4" >> $HOME/.bash_profile
 echo "export CARD_PORT=${CARD_PORT}" >> $HOME/.bash_profile
 source $HOME/.bash_profile
 ```
@@ -44,11 +44,9 @@ source $HOME/.bash_profile
 ```bash
 cd $HOME
 git clone https://github.com/DecentralCardGame/Testnet
-wget https://github.com/DecentralCardGame/Cardchain/releases/download/v0.81/Cardchain_latest_linux_amd64.tar.gz
-tar xzf Cardchain_latest_linux_amd64.tar.gz
+wget https://github.com/DecentralCardGame/Cardchain/releases/download/v0.9.0/Cardchaind
 chmod +x Cardchaind
-sudo mv Cardchaind /usr/local/bin/
-sudo rm Cardchain_latest_linux_amd64.tar.gz
+sudo mv Cardchaind /usr/local/bin/Cardchaind
 ```
 ## Config app
 
@@ -70,22 +68,22 @@ Cardchaind init $NODENAME --chain-id $CARD_CHAIN_ID
 
 ```bash
 SEEDS=""
-PEERS="56d11635447fa77163f31119945e731c55e256a4@45.136.28.158:26658"; \
+PEERS=""; \
 sed -i.bak -e "s/^seeds *=.*/seeds = \"$SEEDS\"/; s/^persistent_peers *=.*/persistent_peers = \"$PEERS\"/" $HOME/.Cardchain/config/config.toml
 ```
 ## Genesis
 
 ```bash
-sudo cp $HOME/Testnet/genesis.json $HOME/.Cardchain/config/genesis.json
+wget http://45.136.28.158:3000/genesis.json -O $HOME/.Cardchain/config/genesis.json
 ```
 
-## Custom ports.
+## Custom ports 
 
 ```bash
 sed -i.bak -e "s%^proxy_app = \"tcp://127.0.0.1:26658\"%proxy_app = \"tcp://127.0.0.1:${CARD_PORT}658\"%; s%^laddr = \"tcp://127.0.0.1:26657\"%laddr = \"tcp://127.0.0.1:${CARD_PORT}657\"%; s%^pprof_laddr = \"localhost:6060\"%pprof_laddr = \"localhost:${CARD_PORT}060\"%; s%^laddr = \"tcp://0.0.0.0:26656\"%laddr = \"tcp://0.0.0.0:${CARD_PORT}656\"%; s%^prometheus_listen_addr = \":26660\"%prometheus_listen_addr = \":${CARD_PORT}660\"%" $HOME/.Cardchain/config/config.toml
 sed -i.bak -e "s%^address = \"tcp://0.0.0.0:1317\"%address = \"tcp://0.0.0.0:${CARD_PORT}317\"%; s%^address = \":8080\"%address = \":${CARD_PORT}080\"%; s%^address = \"0.0.0.0:9090\"%address = \"0.0.0.0:${CARD_PORT}090\"%; s%^address = \"0.0.0.0:9091\"%address = \"0.0.0.0:${CARD_PORT}091\"%" $HOME/.Cardchain/config/app.toml
 ```
-## Pruning.
+## Pruning
 
 ```bash
 pruning="custom"
@@ -97,23 +95,46 @@ sed -i -e "s/^pruning-keep-recent *=.*/pruning-keep-recent = \"$pruning_keep_rec
 sed -i -e "s/^pruning-keep-every *=.*/pruning-keep-every = \"$pruning_keep_every\"/" $HOME/.Cardchain/config/app.toml
 sed -i -e "s/^pruning-interval *=.*/pruning-interval = \"$pruning_interval\"/" $HOME/.Cardchain/config/app.toml
 ```
-## Minimum gas price.
+## Minimum gas price
 
 ```bash
 sed -i 's/minimum-gas-prices = "0ubpf"/minimum-gas-prices = "0.0001ubpf"/g' $HOME/.Cardchain/config/app.toml
 ```
 
-## Prometheus.
+## Prometheus
 
 ```bash
 sed -i -e "s/prometheus = false/prometheus = true/" $HOME/.Cardchain/config/config.toml
 ```
-## Reset chain data.
+## Reset chain data
 
 ```bash
-Cardchaind unsafe-reset-all --home $HOME/.Cardchain
+Cardchaind tendermint unsafe-reset-all --home $HOME/.Cardchain 
 ```
-# Service.
+## Addrbook
+```bash
+wget -O $HOME/.Cardchain/config/addrbook.json "https://raw.githubusercontent.com/obajay/nodes-Guides/main/Projects/Crowd_Control/addrbook.json"
+```
+
+## Snap
+
+```
+SNAP_RPC="http://lxgr.xyz:26657"
+```
+```
+LATEST_HEIGHT=$(curl -s $SNAP_RPC/block | jq -r .result.block.header.height); \
+BLOCK_HEIGHT=$((LATEST_HEIGHT - 1000)); \
+TRUST_HASH=$(curl -s "$SNAP_RPC/block?height=$BLOCK_HEIGHT" | jq -r .result.block_id.hash)
+```
+```
+sed -i.bak -E "s|^(enable[[:space:]]+=[[:space:]]+).*$|\1true| ; \
+s|^(rpc_servers[[:space:]]+=[[:space:]]+).*$|\1\"$SNAP_RPC,$SNAP_RPC\"| ; \
+s|^(trust_height[[:space:]]+=[[:space:]]+).*$|\1$BLOCK_HEIGHT| ; \
+s|^(trust_hash[[:space:]]+=[[:space:]]+).*$|\1\"$TRUST_HASH\"| ; \
+s|^(seeds[[:space:]]+=[[:space:]]+).*$|\1\"\"|" $HOME/.Cardchain/config/config.toml
+```
+
+# Service
 
 ```bash
 sudo tee /etc/systemd/system/Cardchaind.service > /dev/null <<EOF
@@ -131,13 +152,4 @@ LimitNOFILE=65535
 [Install]
 WantedBy=multi-user.target
 EOF
-```
-
-
-## Register and start service.
-
-```bash
-sudo systemctl daemon-reload
-sudo systemctl enable Cardchaind
-sudo systemctl restart Cardchaind && sudo journalctl -u Cardchaind -f -o cat
 ```
