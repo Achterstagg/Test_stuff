@@ -116,7 +116,7 @@ Cardchaind tendermint unsafe-reset-all --home $HOME/.Cardchain
 wget -O $HOME/.Cardchain/config/addrbook.json "https://raw.githubusercontent.com/obajay/nodes-Guides/main/Projects/Crowd_Control/addrbook.json"
 ```
 
-## Snap
+## Snap.
 
 ```
 SNAP_RPC="http://lxgr.xyz:26657"
@@ -134,7 +134,7 @@ s|^(trust_hash[[:space:]]+=[[:space:]]+).*$|\1\"$TRUST_HASH\"| ; \
 s|^(seeds[[:space:]]+=[[:space:]]+).*$|\1\"\"|" $HOME/.Cardchain/config/config.toml
 ```
 
-# Service
+# Service.
 
 ```bash
 sudo tee /etc/systemd/system/Cardchaind.service > /dev/null <<EOF
@@ -153,7 +153,7 @@ LimitNOFILE=65535
 WantedBy=multi-user.target
 EOF
 ```
-## Register and start service
+## Register and start service.
 
 ```bash
 sudo systemctl daemon-reload
