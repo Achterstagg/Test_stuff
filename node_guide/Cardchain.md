@@ -22,7 +22,7 @@ fi
 ```
 ## Moniker, whrite some name
 ```bash
-NODENAME=Cosmo-gem
+NODENAME=Du_not_copypast
 ```
 ## Make your custom ports. You can chose from 10 to 65
 ```bash
@@ -35,7 +35,7 @@ echo "export NODENAME=$NODENAME" >> $HOME/.bash_profile
 if [ ! $WALLET ]; then
 	echo "export WALLET=wallet" >> $HOME/.bash_profile
 fi
-echo "export CARD_CHAIN_ID=cardtestnet-4" >> $HOME/.bash_profile
+echo "export CARD_CHAIN_ID=cardtestnet-7" >> $HOME/.bash_profile
 echo "export CARD_PORT=${CARD_PORT}" >> $HOME/.bash_profile
 source $HOME/.bash_profile
 ```
@@ -43,10 +43,16 @@ source $HOME/.bash_profile
 
 ```bash
 cd $HOME
-git clone https://github.com/DecentralCardGame/Testnet
-wget https://github.com/DecentralCardGame/Cardchain/releases/download/v0.9.0/Cardchaind
+git clone https://github.com/DecentralCardGame/Cardchain
+cd Cardchain
+git checkout v0.10.0
+make install
+```
+```bash
+wget https://github.com/DecentralCardGame/Cardchain/releases/download/v0.12.0/Cardchaind
 chmod +x Cardchaind
 sudo mv Cardchaind /usr/local/bin/Cardchaind
+Cardchaind version --long | grep -e commit -e version
 ```
 ## Config app
 
@@ -68,7 +74,7 @@ Cardchaind init $NODENAME --chain-id $CARD_CHAIN_ID
 
 ```bash
 SEEDS=""
-PEERS=""; \
+PEERS="6a41c6269637733220857a021c8454fa2204987e@202.61.225.157:26656"; \
 sed -i.bak -e "s/^seeds *=.*/seeds = \"$SEEDS\"/; s/^persistent_peers *=.*/persistent_peers = \"$PEERS\"/" $HOME/.Cardchain/config/config.toml
 ```
 ## Genesis
@@ -116,25 +122,7 @@ Cardchaind tendermint unsafe-reset-all --home $HOME/.Cardchain
 wget -O $HOME/.Cardchain/config/addrbook.json "https://raw.githubusercontent.com/obajay/nodes-Guides/main/Projects/Crowd_Control/addrbook.json"
 ```
 
-## Snap.
-
-```
-SNAP_RPC="http://lxgr.xyz:26657"
-```
-```
-LATEST_HEIGHT=$(curl -s $SNAP_RPC/block | jq -r .result.block.header.height); \
-BLOCK_HEIGHT=$((LATEST_HEIGHT - 1000)); \
-TRUST_HASH=$(curl -s "$SNAP_RPC/block?height=$BLOCK_HEIGHT" | jq -r .result.block_id.hash)
-```
-```
-sed -i.bak -E "s|^(enable[[:space:]]+=[[:space:]]+).*$|\1true| ; \
-s|^(rpc_servers[[:space:]]+=[[:space:]]+).*$|\1\"$SNAP_RPC,$SNAP_RPC\"| ; \
-s|^(trust_height[[:space:]]+=[[:space:]]+).*$|\1$BLOCK_HEIGHT| ; \
-s|^(trust_hash[[:space:]]+=[[:space:]]+).*$|\1\"$TRUST_HASH\"| ; \
-s|^(seeds[[:space:]]+=[[:space:]]+).*$|\1\"\"|" $HOME/.Cardchain/config/config.toml
-```
-
-# Service.
+# Service
 
 ```bash
 sudo tee /etc/systemd/system/Cardchaind.service > /dev/null <<EOF
@@ -153,10 +141,17 @@ LimitNOFILE=65535
 WantedBy=multi-user.target
 EOF
 ```
-## Register and start service.
+
+
+## Register and start service
 
 ```bash
 sudo systemctl daemon-reload
 sudo systemctl enable Cardchaind
 sudo systemctl restart Cardchaind && sudo journalctl -u Cardchaind -f -o cat
+```
+
+## synchronization status
+```bash
+Cardchaind status 2>&1 | jq .SyncInfo
 ```
